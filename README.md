@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShipSeva Admin Panel
+
+A comprehensive admin panel for the ShipSeva logistics platform built with Next.js 15, TypeScript, Redux Toolkit, and Tailwind CSS.
+
+## Features
+
+- **Modern Admin Interface**: Clean, responsive design with dark/light mode support
+- **Authentication**: Secure admin login with role-based access control
+- **User Management**: View, edit, and manage platform users
+- **Order Management**: Track and manage shipping orders
+- **KYC Management**: Review and approve KYC applications
+- **Analytics Dashboard**: Comprehensive analytics and reporting
+- **Real-time Updates**: Live data updates using Redux Toolkit Query
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **State Management**: Redux Toolkit + RTK Query
+- **Styling**: Tailwind CSS
+- **UI Components**: Custom components with Lucide React icons
+- **Forms**: Formik with Yup validation
+- **HTTP Client**: Axios
+- **Notifications**: React Hot Toast
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn
+- Backend API running on port 3001
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd admin-panel
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Create environment file:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Configure environment variables:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_ADMIN_PANEL_URL=http://localhost:3000
+```
 
-## Learn More
+5. Start the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── admin/             # Admin panel pages
+│   │   ├── login/         # Login page
+│   │   ├── users/         # User management
+│   │   ├── orders/        # Order management
+│   │   ├── kyc/           # KYC management
+│   │   └── analytics/     # Analytics dashboard
+│   └── layout.tsx         # Root layout
+├── components/            # Reusable components
+│   ├── auth/              # Authentication components
+│   ├── layout/            # Layout components
+│   ├── forms/             # Form components
+│   └── ui/                # UI components
+├── lib/                   # Utility functions
+├── store/                 # Redux store
+│   ├── api/               # RTK Query APIs
+│   └── slices/            # Redux slices
+└── types/                 # TypeScript type definitions
+```
 
-## Deploy on Vercel
+## Admin Roles & Permissions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Super Admin
+- Full access to all features
+- Can manage other admins
+- System configuration access
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Admin
+- User management
+- Order management
+- KYC approval
+- Analytics access
+
+### Moderator
+- Limited user management
+- Order status updates
+- KYC review (no approval)
+
+## API Integration
+
+The admin panel integrates with the backend API through RTK Query:
+
+- **Authentication**: `/api/auth/admin/*`
+- **Users**: `/api/admin/users/*`
+- **Orders**: `/api/admin/orders/*`
+- **KYC**: `/api/admin/kyc/*`
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+### Code Style
+
+- TypeScript strict mode enabled
+- ESLint configuration for Next.js
+- Prettier for code formatting
+- Tailwind CSS for styling
+
+## Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Environment Variables
+
+Ensure the following environment variables are set:
+
+- `NEXT_PUBLIC_API_URL` - Backend API URL
+- `NEXT_PUBLIC_ADMIN_PANEL_URL` - Admin panel URL
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
