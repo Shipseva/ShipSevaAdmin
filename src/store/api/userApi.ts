@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createBaseQueryWithToasts } from './baseQuery';
+import { setAdmin, logout } from '@/store/slices/adminSlice';
 
 export const userApi = createApi({
   reducerPath: 'userApi',
@@ -55,6 +56,16 @@ export const userApi = createApi({
     getCurrentUser: builder.query({
       query: () => '/users/get-current-user',
       providesTags: ['User'],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          console.log('✅ getCurrentUser successful:', data);
+          dispatch(setAdmin({ admin: data, token: 'cookie' }));
+        } catch (error) {
+          console.error('❌ getCurrentUser failed:', error);
+          dispatch(logout()); // This will handle the redirect
+        }
+      },
     }),
     
     // Get user by ID

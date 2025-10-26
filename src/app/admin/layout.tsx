@@ -9,5 +9,11 @@ export default function AdminLayoutWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <AdminAuthWrapper>
+      <AdminLayout>
+        {children}
+      </AdminLayout>
+    </AdminAuthWrapper>
+  );
 }

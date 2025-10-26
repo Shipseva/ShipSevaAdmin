@@ -1,13 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { setAuthChecked, setAdmin } from '@/store/slices/adminSlice';
-import { getAdminUser, getAdminToken, removeAdminAuthData } from '@/lib/auth';
-import { useGetAdminProfileQuery } from '@/store/api/authApi';
-import { AdminUser } from '@/types/admin';
+import { useGetCurrentUserQuery } from '@/store/api/userApi';
 
 interface AdminAuthWrapperProps {
   children: React.ReactNode;
@@ -23,35 +20,14 @@ const AdminAuthWrapper: React.FC<AdminAuthWrapperProps> = ({
   requiredPermission,
 }) => {
   const router = useRouter();
-  const dispatch = useDispatch();
-  const { isAuthenticated, hasCheckedAuth, admin } = useSelector((state: RootState) => state.admin);
-  const [mounted, setMounted] = useState(false);
-
-  // Check for existing auth data on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = getAdminToken();
-      const user = getAdminUser();
-      
-      if (token && user) {
-        dispatch(setAdmin({ admin: user, token }));
-      } else {
-        // Clear any invalid auth data
-        removeAdminAuthData();
-      }
-      
-      dispatch(setAuthChecked());
-      setMounted(true);
-    };
-
-    checkAuth();
-  }, [dispatch]);
+  const { isAuthenticated, admin } = useSelector((state: RootState) => state.admin);
+  
+  // Call getCurrentUser API - everything is handled in the API (success, error, redirect)
+  const { isLoading } = useGetCurrentUserQuery();
 
   // Handle authentication requirements
   useEffect(() => {
-    if (!mounted || !hasCheckedAuth) return;
-
-    if (requireAuth && !isAuthenticated) {
+    if (!isLoading && requireAuth && !isAuthenticated) {
       router.push('/admin/login');
       return;
     }
@@ -69,35 +45,23 @@ const AdminAuthWrapper: React.FC<AdminAuthWrapperProps> = ({
         return;
       }
     }
-  }, [mounted, hasCheckedAuth, isAuthenticated, admin, requiredRole, requiredPermission, router]);
+  }, [isLoading, isAuthenticated, admin, requiredRole, requiredPermission, router, requireAuth]);
 
-  // Show loading while checking auth
-  if (!mounted || !hasCheckedAuth) {
+  // Show loading spinner while checking authentication
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Show unauthorized if requirements not met
+  // If not authenticated and auth is required, don't render children (redirect will happen)
   if (requireAuth && !isAuthenticated) {
-    return null; // Will redirect to login
+    return null;
   }
 
-  if (isAuthenticated && admin) {
-    if (requiredRole && admin.role !== requiredRole && admin.role !== 'super_admin') {
-      return null; // Will redirect to unauthorized
-    }
-
-    if (requiredPermission && !admin.permissions.includes(requiredPermission) && admin.role !== 'super_admin') {
-      return null; // Will redirect to unauthorized
-    }
-  }
-
+  // If authenticated, render children
   return <>{children}</>;
 };
 
