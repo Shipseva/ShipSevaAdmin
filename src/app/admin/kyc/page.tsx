@@ -120,6 +120,7 @@ const KYCPage: React.FC = () => {
   const { 
     data: kycData, 
     isLoading, 
+    isFetching,
     error, 
     refetch 
   } = useGetAllKycQuery(getFilteredParams());
@@ -130,7 +131,7 @@ const KYCPage: React.FC = () => {
   const [rejectKyc] = useRejectKycMutation();
   const [updateDocumentStatus] = useUpdateDocumentStatusMutation();
 
-  const kycApplications = kycData?.kycRecords || [];
+  const kycApplications = kycData?.data || [];
   const totalRecords = kycData?.totalRecords || 0;
   const currentPage = kycData?.currentPage || 1;
   const totalPages = kycData?.totalPages || 1;
@@ -286,7 +287,16 @@ const KYCPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      {/* Loading Overlay */}
+      {isFetching && (
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 rounded-xl">
+          <div className="flex items-center space-x-2 bg-white px-6 py-3 rounded-lg shadow-lg border">
+            <RefreshCw className="w-5 h-5 animate-spin text-primary" />
+            <span className="text-gray-600 font-medium">Loading KYC applications...</span>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -297,10 +307,11 @@ const KYCPage: React.FC = () => {
           <div className="flex space-x-3">
             <button 
               onClick={() => refetch()}
-              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+              disabled={isFetching}
+              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+              {isFetching ? 'Refreshing...' : 'Refresh'}
             </button>
             <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
               <Download className="w-4 h-4 mr-2" />
@@ -519,7 +530,14 @@ const KYCPage: React.FC = () => {
 
       {/* KYC Applications Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {error ? (
+        {isLoading ? (
+          <div className="p-8 text-center">
+            <div className="flex items-center justify-center">
+              <RefreshCw className="w-5 h-5 animate-spin text-primary mr-2" />
+              <span className="text-gray-600">Loading KYC applications...</span>
+            </div>
+          </div>
+        ) : error ? (
           <div className="p-8 text-center">
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
               <div className="flex items-center justify-center">

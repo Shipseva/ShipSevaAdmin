@@ -60,7 +60,19 @@ export const userApi = createApi({
         try {
           const { data } = await queryFulfilled;
           console.log('✅ getCurrentUser successful:', data);
-          dispatch(setAdmin({ admin: data, token: 'cookie' }));
+          
+          // Transform user data to admin format
+          const adminData = {
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: data.role === 'admin' ? 'admin' : 'moderator', // Map user role to admin role
+            permissions: data.permissions || [], // Provide empty array if no permissions
+            createdAt: data.createdAt,
+            lastLoginAt: data.lastLoginAt,
+          };
+          
+          dispatch(setAdmin({ admin: adminData, token: 'cookie' }));
         } catch (error) {
           console.error('❌ getCurrentUser failed:', error);
           dispatch(logout()); // This will handle the redirect

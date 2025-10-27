@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useGetKycByIdQuery, useUpdateKycMutation, useUpdateDocumentStatusMutation } from '@/store/api/kycApi';
 import { X, Save, User, FileText, CheckCircle, XCircle, Clock, Building, Shield, AlertCircle, Eye, Download } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import ImageModal from '@/components/ui/ImageModal';
 
 interface KYCDetailModalProps {
   kycId: string | null;
@@ -19,6 +20,8 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
     aadharStatus: '',
     panStatus: ''
   });
+  const [selectedImageKey, setSelectedImageKey] = useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const { data: kyc, isLoading, error } = useGetKycByIdQuery(kycId || '', {
     skip: !kycId || !isOpen
@@ -26,6 +29,51 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
 
   const [updateKyc, { isLoading: isUpdating }] = useUpdateKycMutation();
   const [updateDocumentStatus, { isLoading: isUpdatingDoc }] = useUpdateDocumentStatusMutation();
+
+  // Component to handle image viewing with signed URLs
+  const ImageViewer: React.FC<{ fileKey: string; fileName: string }> = ({ fileKey, fileName }) => {
+    // Extract S3 key from full URL
+    const extractS3Key = (url: string): string => {
+      try {
+        // If it's already a key (no http), return as is
+        if (!url.startsWith('http')) {
+          return url;
+        }
+        
+        // Extract key from S3 URL
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/');
+        
+        // Remove empty first element and bucket name
+        const keyParts = pathParts.slice(2);
+        
+        return keyParts.join('/');
+      } catch (error) {
+        console.error('Error extracting S3 key:', error);
+        return url; // Fallback to original
+      }
+    };
+
+    const handleImageClick = () => {
+      if (fileKey) {
+        const s3Key = extractS3Key(fileKey);
+        console.log('Original URL:', fileKey);
+        console.log('Extracted S3 Key:', s3Key);
+        setSelectedImageKey(s3Key);
+        setShowImageModal(true);
+      }
+    };
+
+    return (
+      <button
+        onClick={handleImageClick}
+        className="text-primary hover:text-primary-light text-sm flex items-center"
+      >
+        <Eye className="w-3 h-3 mr-1" />
+        {fileName}
+      </button>
+    );
+  };
 
   useEffect(() => {
     if (kyc) {
@@ -53,8 +101,10 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
     try {
       await updateKyc({
         id: kycId,
-        status: formData.status as 'pending' | 'verified' | 'rejected',
-        businessType: formData.businessType as 'individual' | 'company' | 'partnership' | 'llp' | 'trust' | 'other'
+        updates: {
+          status: formData.status as 'pending' | 'verified' | 'rejected',
+          businessType: formData.businessType as 'individual' | 'agency'
+        }
       }).unwrap();
       setIsEditing(false);
     } catch (error) {
@@ -194,19 +244,12 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none"
                       >
                         <option value="individual">Individual</option>
-                        <option value="company">Company</option>
-                        <option value="partnership">Partnership</option>
-                        <option value="llp">LLP</option>
-                        <option value="trust">Trust</option>
-                        <option value="other">Other</option>
+                        <option value="agency">Agency</option>
                       </select>
                     ) : (
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         kyc.businessType === 'individual' ? 'bg-blue-100 text-blue-800' :
-                        kyc.businessType === 'company' ? 'bg-green-100 text-green-800' :
-                        kyc.businessType === 'partnership' ? 'bg-purple-100 text-purple-800' :
-                        kyc.businessType === 'llp' ? 'bg-orange-100 text-orange-800' :
-                        kyc.businessType === 'trust' ? 'bg-pink-100 text-pink-800' :
+                        kyc.businessType === 'agency' ? 'bg-green-100 text-green-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         {kyc.businessType.charAt(0).toUpperCase() + kyc.businessType.slice(1)}
@@ -239,20 +282,8 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
                       <div className="space-y-2">
                         <p className="text-sm text-gray-600">Number: {kyc.aadhar.aadharNumber}</p>
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() => window.open(kyc.aadhar?.aadharFront, '_blank')}
-                            className="text-primary hover:text-primary-light text-sm flex items-center"
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View Front
-                          </button>
-                          <button
-                            onClick={() => window.open(kyc.aadhar?.aadharBack, '_blank')}
-                            className="text-primary hover:text-primary-light text-sm flex items-center"
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View Back
-                          </button>
+                          <ImageViewer fileKey={kyc.aadhar?.aadharFront || ''} fileName="View Front" />
+                          <ImageViewer fileKey={kyc.aadhar?.aadharBack || ''} fileName="View Back" />
                         </div>
                         <div className="flex space-x-2 mt-2">
                           <button
@@ -293,20 +324,8 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
                       <div className="space-y-2">
                         <p className="text-sm text-gray-600">Number: {kyc.pan.panNumber}</p>
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() => window.open(kyc.pan?.panFront, '_blank')}
-                            className="text-primary hover:text-primary-light text-sm flex items-center"
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View Front
-                          </button>
-                          <button
-                            onClick={() => window.open(kyc.pan?.panBack, '_blank')}
-                            className="text-primary hover:text-primary-light text-sm flex items-center"
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View Back
-                          </button>
+                          <ImageViewer fileKey={kyc.pan?.panFront || ''} fileName="View Front" />
+                          <ImageViewer fileKey={kyc.pan?.panBack || ''} fileName="View Back" />
                         </div>
                         <div className="flex space-x-2 mt-2">
                           <button
@@ -371,13 +390,7 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">GST Certificate</label>
                       {kyc.gstCertificate ? (
-                        <button
-                          onClick={() => window.open(kyc.gstCertificate, '_blank')}
-                          className="text-primary hover:text-primary-light text-sm flex items-center"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download Certificate
-                        </button>
+                        <ImageViewer fileKey={kyc.gstCertificate} fileName="Download Certificate" />
                       ) : (
                         <p className="text-gray-500">Not provided</p>
                       )}
@@ -444,6 +457,17 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={showImageModal}
+        onClose={() => {
+          setShowImageModal(false);
+          setSelectedImageKey(null);
+        }}
+        fileKey={selectedImageKey || ''}
+        fileName="Document View"
+      />
     </div>
   );
 };

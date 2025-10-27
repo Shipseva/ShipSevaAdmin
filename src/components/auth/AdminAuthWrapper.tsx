@@ -28,7 +28,7 @@ const AdminAuthWrapper: React.FC<AdminAuthWrapperProps> = ({
   // Handle authentication requirements
   useEffect(() => {
     if (!isLoading && requireAuth && !isAuthenticated) {
-      router.push('/admin/login');
+      router.push('/login');
       return;
     }
 

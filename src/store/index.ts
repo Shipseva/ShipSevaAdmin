@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import adminReducer from "./slices/adminSlice";
 import { useDispatch } from "react-redux";
-import { authApi, userApi, kycApi, orderApi } from "./api";
+import { authApi, userApi, kycApi, orderApi, fileApi } from "./api";
 
 export const store = configureStore({
   reducer: {
@@ -10,13 +10,15 @@ export const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [kycApi.reducerPath]: kycApi.reducer,
     [orderApi.reducerPath]: orderApi.reducer,
+    [fileApi.reducerPath]: fileApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(userApi.middleware)
       .concat(kycApi.middleware)
-      .concat(orderApi.middleware),
+      .concat(orderApi.middleware)
+      .concat(fileApi.middleware),
   devTools: process.env.NODE_ENV !== "production",
 });
 

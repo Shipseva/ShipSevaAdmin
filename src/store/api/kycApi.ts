@@ -1,66 +1,128 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createBaseQueryWithToasts } from './baseQuery';
 
+export interface KYCDocument {
+  id: string;
+  type: 'pan' | 'aadhar_front' | 'aadhar_back' | 'gst' | 'bank';
+  fileName: string;
+  fileKey: string;
+  uploadedAt: string;
+  status: 'pending' | 'verified' | 'rejected';
+  number?: string;
+}
+
+export interface KYCApplication {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  businessType: 'individual' | 'agency';
+  documents: KYCDocument[];
+  bankInfo?: {
+    bankName: string;
+    branchName?: string;
+    accountHolderName: string;
+    accountNumber: string;
+    ifscCode: string;
+  };
+  gstInfo?: {
+    gstNumber: string;
+    gstCertificateKey?: string;
+  };
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const kycApi = createApi({
   reducerPath: 'kycApi',
   baseQuery: createBaseQueryWithToasts(process.env.NEXT_PUBLIC_API_URL || 'http://localhost'),
   tagTypes: ['KYC'],
   endpoints: (builder) => ({
-    // Get all KYC records with advanced filtering
-    getAllKyc: builder.query({
-      query: (params?: {
-        name?: string;
-        status?: 'pending' | 'verified' | 'rejected';
-        businessType?: 'individual' | 'company' | 'partnership' | 'llp' | 'trust' | 'other';
-        aadharVerified?: boolean;
-        panVerified?: boolean;
-        limit?: number;
-        page?: number;
-        sortBy?: 'createdAt' | 'status' | 'businessType';
-        sortOrder?: 'ASC' | 'DESC';
-      }) => {
-        // Filter out empty/null/undefined values
-        const filteredParams = Object.entries(params || {}).reduce((acc, [key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            acc[key] = value;
-          }
-          return acc;
-        }, {} as Record<string, any>);
-
-        return {
-          url: '/kyc',
-          params: filteredParams,
-        };
-      },
-      transformResponse: (response: {
-        data: any[];
-        totalRecords: number;
-        currentPage: number;
-      }) => ({
-        kycRecords: response.data,
-        totalRecords: response.totalRecords,
-        currentPage: response.currentPage,
-        totalPages: Math.ceil(response.totalRecords / (response.data.length || 1))
+    // Get all KYC applications
+    getAllKyc: builder.query<{
+      applications: KYCApplication[];
+      totalRecords: number;
+      currentPage: number;
+      totalPages: number;
+    }, {
+      status?: 'pending' | 'approved' | 'rejected';
+      businessType?: 'individual' | 'agency';
+      limit?: number;
+      page?: number;
+    }>({
+      query: (params) => ({
+        url: '/kyc',
+        params,
       }),
       providesTags: ['KYC'],
     }),
     
-    // Get KYC records for current user
-    getCurrentUserKyc: builder.query({
-      query: () => '/kyc/userDocuments',
+    // Get single KYC application
+    getKYCApplication: builder.query<KYCApplication, string>({
+      query: (id) => `/kyc/${id}`,
       providesTags: ['KYC'],
     }),
     
-    // Get KYC record by ID
-    getKycById: builder.query({
-      query: (id: string) => `/kyc/${id}`,
+    // Get KYC by ID (alias for getKYCApplication)
+    getKycById: builder.query<KYCApplication, string>({
+      query: (id) => `/kyc/${id}`,
       providesTags: ['KYC'],
     }),
     
-    // Update KYC record
-    updateKyc: builder.mutation({
-      query: ({ id, ...updates }: {
-        id: string;
+    // Delete KYC application
+    deleteKyc: builder.mutation<{ success: boolean; message: string }, string>({
+      query: (id) => ({
+        url: `/kyc/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['KYC'],
+    }),
+    
+    // Approve KYC application
+    approveKyc: builder.mutation<{ success: boolean; message: string }, {
+      id: string;
+      reason?: string;
+    }>({
+      query: ({ id, reason }) => ({
+        url: `/kyc/${id}/approve`,
+        method: 'POST',
+        body: { reason },
+      }),
+      invalidatesTags: ['KYC'],
+    }),
+    
+    // Reject KYC application
+    rejectKyc: builder.mutation<{ success: boolean; message: string }, {
+      id: string;
+      reason?: string;
+    }>({
+      query: ({ id, reason }) => ({
+        url: `/kyc/${id}/reject`,
+        method: 'POST',
+        body: { reason },
+      }),
+      invalidatesTags: ['KYC'],
+    }),
+    
+    // Update KYC application status (generic)
+    updateKYCStatus: builder.mutation<{ success: boolean; message: string }, {
+      id: string;
+      status: 'verified' | 'rejected';
+      reason?: string;
+    }>({
+      query: ({ id, status, reason }) => ({
+        url: `/kyc/${id}/status`,
+        method: 'PATCH',
+        body: { status, reason },
+      }),
+      invalidatesTags: ['KYC'],
+    }),
+    
+    // Update KYC application (generic update)
+    updateKyc: builder.mutation<{ success: boolean; message: string }, {
+      id: string;
+      updates: Partial<{
         aadhar?: {
           aadharNumber?: string;
           aadharFront?: string;
@@ -80,9 +142,11 @@ export const kycApi = createApi({
         branchName?: string;
         gstNumber?: string;
         gstCertificate?: string;
-        businessType?: 'individual' | 'company' | 'partnership' | 'llp' | 'trust' | 'other';
+        businessType?: 'individual' | 'agency';
         status?: 'pending' | 'verified' | 'rejected';
-      }) => ({
+      }>;
+    }>({
+      query: ({ id, updates }) => ({
         url: `/kyc/${id}`,
         method: 'PATCH',
         body: updates,
@@ -90,51 +154,34 @@ export const kycApi = createApi({
       invalidatesTags: ['KYC'],
     }),
     
-    // Delete KYC record
-    deleteKyc: builder.mutation({
-      query: (id: string) => ({
-        url: `/kyc/${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['KYC'],
-    }),
-    
     // Update document status
-    updateDocumentStatus: builder.mutation({
-      query: ({ id, type, documentStatus }: {
-        id: string;
-        type: 'aadhar' | 'pan';
-        documentStatus: 'pending' | 'verified' | 'rejected';
-      }) => ({
-        url: `/kyc/updateDocumentStatus/${id}`,
+    updateDocumentStatus: builder.mutation<{ success: boolean; message: string }, {
+      id: string;
+      type: 'aadhar' | 'pan';
+      documentStatus: 'pending' | 'verified' | 'rejected';
+      reason?: string;
+    }>({
+      query: ({ id, type, documentStatus, reason }) => ({
+        url: `/kyc/${id}`,
         method: 'PATCH',
-        body: { type, documentStatus },
-      }),
-      invalidatesTags: ['KYC'],
-    }),
-    
-    // Approve KYC (admin specific)
-    approveKyc: builder.mutation({
-      query: (id: string) => ({
-        url: `/admin/kyc/${id}/approve`,
-        method: 'POST',
-      }),
-      invalidatesTags: ['KYC'],
-    }),
-    
-    // Reject KYC (admin specific)
-    rejectKyc: builder.mutation({
-      query: ({ id, reason }: { id: string; reason?: string }) => ({
-        url: `/admin/kyc/${id}/reject`,
-        method: 'POST',
-        body: { reason },
+        body: {
+          [type]: { documentStatus },
+          ...(reason && { reason })
+        },
       }),
       invalidatesTags: ['KYC'],
     }),
     
     // Get KYC statistics
-    getKycStats: builder.query({
-      query: () => '/admin/kyc/stats',
+    getKycStats: builder.query<{
+      total: number;
+      pending: number;
+      approved: number;
+      rejected: number;
+      individual: number;
+      agency: number;
+    }, void>({
+      query: () => '/kyc/stats',
       providesTags: ['KYC'],
     }),
   }),
@@ -142,12 +189,13 @@ export const kycApi = createApi({
 
 export const {
   useGetAllKycQuery,
-  useGetCurrentUserKycQuery,
+  useGetKYCApplicationQuery,
   useGetKycByIdQuery,
-  useUpdateKycMutation,
   useDeleteKycMutation,
-  useUpdateDocumentStatusMutation,
   useApproveKycMutation,
   useRejectKycMutation,
+  useUpdateKYCStatusMutation,
+  useUpdateKycMutation,
+  useUpdateDocumentStatusMutation,
   useGetKycStatsQuery,
 } = kycApi;

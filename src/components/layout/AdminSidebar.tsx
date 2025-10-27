@@ -75,6 +75,8 @@ const AdminSidebar: React.FC = () => {
   const canAccess = (permission: string) => {
     if (!admin) return false;
     if (admin.role === 'super_admin') return true;
+    // Handle case where permissions might not exist (for regular users)
+    if (!admin.permissions || !Array.isArray(admin.permissions)) return false;
     return admin.permissions.includes(permission);
   };
 

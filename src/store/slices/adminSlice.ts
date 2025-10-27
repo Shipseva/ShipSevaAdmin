@@ -77,7 +77,7 @@ const adminSlice = createSlice({
       
       // Redirect to login
       if (typeof window !== 'undefined') {
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
       }
     },
   },

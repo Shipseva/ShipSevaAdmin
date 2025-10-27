@@ -4,6 +4,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
 import { toggleTheme, logout } from '@/store/slices/adminSlice';
+import { useAdminLogoutMutation } from '@/store/api/authApi';
 import {
   Bell,
   Search,
@@ -17,9 +18,18 @@ import {
 const AdminHeader: React.FC = () => {
   const dispatch = useDispatch();
   const { theme, admin } = useSelector((state: RootState) => state.admin);
+  const [adminLogout] = useAdminLogoutMutation();
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    try {
+      await adminLogout().unwrap();
+      // API call successful, dispatch logout to clear local state
+      dispatch(logout());
+    } catch (error) {
+      console.error('Logout API failed:', error);
+      // Even if API fails, clear local state and redirect
+      dispatch(logout());
+    }
   };
 
   return (
