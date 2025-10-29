@@ -3,11 +3,11 @@ import { createBaseQueryWithToasts } from './baseQuery';
 
 export const fileApi = createApi({
   reducerPath: 'fileApi',
-  baseQuery: createBaseQueryWithToasts(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'),
+  baseQuery: createBaseQueryWithToasts(''),
   tagTypes: ['File'],
   endpoints: (builder) => ({
     getSignedUrl: builder.query<{ success: boolean; url: string; expiresIn: number }, string>({
-      query: (key) => `/files/signed-url?key=${encodeURIComponent(key)}`,
+      query: (key) => `/api/files/signed-url?key=${encodeURIComponent(key)}`,
       providesTags: ['File'],
     }),
   }),

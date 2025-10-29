@@ -26,7 +26,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, fileKey, fileN
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:3001/api/files/signed-url?key=${encodeURIComponent(fileKey)}`, {
+      const response = await fetch(`/api/files/signed-url?key=${encodeURIComponent(fileKey)}`, {
         credentials: 'include',
       });
       
