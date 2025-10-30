@@ -29,10 +29,7 @@ export const userApi = createApi({
           return acc;
         }, {} as Record<string, any>);
 
-        // Add default status if no status is provided
-        if (!filteredParams.status) {
-          filteredParams.status = 'verified';
-        }
+        // Do not force a default status; when not provided, return all statuses
 
         return {
           url: '/users',
