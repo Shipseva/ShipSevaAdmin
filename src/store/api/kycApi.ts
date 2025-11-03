@@ -55,7 +55,7 @@ export const kycApi = createApi({
       page?: number;
     }>({
       query: (params) => ({
-        url: '/kyc',
+        url: '',
         params,
       }),
       providesTags: ['KYC'],
@@ -63,20 +63,20 @@ export const kycApi = createApi({
     
     // Get single KYC application
     getKYCApplication: builder.query<KYCApplication, string>({
-      query: (id) => `/kyc/${id}`,
+      query: (id) => `/${id}`,
       providesTags: ['KYC'],
     }),
     
     // Get KYC by ID (alias for getKYCApplication)
     getKycById: builder.query<KYCApplication, string>({
-      query: (id) => `/kyc/${id}`,
+      query: (id) => `/${id}`,
       providesTags: ['KYC'],
     }),
     
     // Delete KYC application
     deleteKyc: builder.mutation<{ success: boolean; message: string }, string>({
       query: (id) => ({
-        url: `/kyc/${id}`,
+        url: `/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['KYC'],
@@ -88,7 +88,7 @@ export const kycApi = createApi({
       reason?: string;
     }>({
       query: ({ id, reason }) => ({
-        url: `/kyc/${id}/approve`,
+        url: `/${id}/approve`,
         method: 'POST',
         body: { reason },
       }),
@@ -101,7 +101,7 @@ export const kycApi = createApi({
       reason?: string;
     }>({
       query: ({ id, reason }) => ({
-        url: `/kyc/${id}/reject`,
+        url: `/${id}/reject`,
         method: 'POST',
         body: { reason },
       }),
@@ -115,7 +115,7 @@ export const kycApi = createApi({
       reason?: string;
     }>({
       query: ({ id, status, reason }) => ({
-        url: `/kyc/${id}/status`,
+        url: `/${id}/status`,
         method: 'PATCH',
         body: { status, reason },
       }),
@@ -150,7 +150,7 @@ export const kycApi = createApi({
       }>;
     }>({
       query: ({ id, updates }) => ({
-        url: `/kyc/${id}`,
+        url: `/${id}`,
         method: 'PATCH',
         body: updates,
       }),
@@ -165,7 +165,7 @@ export const kycApi = createApi({
       reason?: string;
     }>({
       query: ({ id, type, documentStatus, reason }) => ({
-        url: `/kyc/${id}`,
+        url: `/${id}`,
         method: 'PATCH',
         body: {
           [type]: { documentStatus },
@@ -184,7 +184,7 @@ export const kycApi = createApi({
       individual: number;
       agency: number;
     }, void>({
-      query: () => '/kyc/stats',
+      query: () => '/stats',
       providesTags: ['KYC'],
     }),
   }),
