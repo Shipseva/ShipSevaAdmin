@@ -1,9 +1,10 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createBaseQuery } from './baseQuery';
+import { getApiUrl } from '@/config/apiConfig';
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: createBaseQuery( 'http://localhost/auth', true), // excludeAuthApis = true, no toasts
+  baseQuery: createBaseQuery(getApiUrl("AUTH"), true), // excludeAuthApis = true, no toasts
   tagTypes: ['Auth'],
   endpoints: (builder) => ({
     adminLogin: builder.mutation({

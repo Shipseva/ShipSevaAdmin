@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createBaseQueryWithToasts } from './baseQuery';
+import { getApiUrl } from '@/config/apiConfig';
 
 export interface KYCDocument {
   id: string;
@@ -34,9 +35,11 @@ export interface KYCApplication {
   updatedAt: string;
 }
 
+import { getApiUrl } from '@/config/apiConfig';
+
 export const kycApi = createApi({
   reducerPath: 'kycApi',
-  baseQuery: createBaseQueryWithToasts(process.env.NEXT_PUBLIC_API_URL || 'http://localhost'),
+  baseQuery: createBaseQueryWithToasts(getApiUrl("KYC")),
   tagTypes: ['KYC'],
   endpoints: (builder) => ({
     // Get all KYC applications

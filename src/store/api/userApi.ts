@@ -1,10 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createBaseQueryWithToasts } from './baseQuery';
 import { setAdmin, logout } from '@/store/slices/adminSlice';
+import { getApiUrl } from '@/config/apiConfig';
 
 export const userApi = createApi({
   reducerPath: 'userApi',
-  baseQuery: createBaseQueryWithToasts(process.env.NEXT_PUBLIC_API_URL || 'http://localhost'),
+  baseQuery: createBaseQueryWithToasts(getApiUrl("USERS")),
   tagTypes: ['User'],
   endpoints: (builder) => ({
     // Get all users with advanced filtering
