@@ -33,7 +33,7 @@ export const userApi = createApi({
         // Do not force a default status; when not provided, return all statuses
 
         return {
-          url: '/users',
+          url: '',
           params: filteredParams,
         };
       },
@@ -52,7 +52,7 @@ export const userApi = createApi({
     
     // Get current user profile
     getCurrentUser: builder.query({
-      query: () => '/users/get-current-user',
+      query: () => '/get-current-user',
       providesTags: ['User'],
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
@@ -80,7 +80,7 @@ export const userApi = createApi({
     
     // Get user by ID
     getUserById: builder.query({
-      query: (userId: string) => `/users/${userId}`,
+      query: (userId: string) => `/${userId}`,
       providesTags: ['User'],
     }),
     
@@ -93,7 +93,7 @@ export const userApi = createApi({
         status?: 'pending' | 'verified' | 'rejected';
         isEmailVerified?: boolean;
       }) => ({
-        url: `/users/${userId}`,
+        url: `/${userId}`,
         method: 'PATCH',
         body: updates,
       }),
@@ -103,7 +103,7 @@ export const userApi = createApi({
     // Delete user
     deleteUser: builder.mutation({
       query: (userId: string) => ({
-        url: `/users/${userId}`,
+        url: `/${userId}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['User'],
@@ -112,7 +112,7 @@ export const userApi = createApi({
     // Ban user (admin specific)
     banUser: builder.mutation({
       query: ({ id, reason }: { id: string; reason?: string }) => ({
-        url: `/admin/users/${id}/ban`,
+        url: `/admin/${id}/ban`,
         method: 'POST',
         body: { reason },
       }),
@@ -122,7 +122,7 @@ export const userApi = createApi({
     // Unban user (admin specific)
     unbanUser: builder.mutation({
       query: (id: string) => ({
-        url: `/admin/users/${id}/unban`,
+        url: `/admin/${id}/unban`,
         method: 'POST',
       }),
       invalidatesTags: ['User'],
@@ -130,7 +130,7 @@ export const userApi = createApi({
     
     // Get user statistics
     getUserStats: builder.query({
-      query: () => '/admin/users/stats',
+      query: () => '/admin/stats',
       providesTags: ['User'],
     }),
   }),
