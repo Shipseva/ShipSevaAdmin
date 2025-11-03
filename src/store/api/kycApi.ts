@@ -35,7 +35,7 @@ export interface KYCApplication {
   updatedAt: string;
 }
 
-import { getApiUrl } from '@/config/apiConfig';
+
 
 export const kycApi = createApi({
   reducerPath: 'kycApi',
