@@ -7,7 +7,6 @@ import {
   useApproveKycMutation,
   useRejectKycMutation,
   useUpdateDocumentStatusMutation,
-  useGetKycStatsQuery
 } from '@/store/api/kycApi';
 import {
   FileText,
@@ -125,7 +124,6 @@ const KYCPage: React.FC = () => {
     refetch 
   } = useGetAllKycQuery(getFilteredParams());
 
-  const { data: statsData } = useGetKycStatsQuery();
   const [deleteKyc] = useDeleteKycMutation();
   const [approveKyc] = useApproveKycMutation();
   const [rejectKyc] = useRejectKycMutation();
@@ -135,14 +133,6 @@ const KYCPage: React.FC = () => {
   const totalRecords = kycData?.totalRecords || 0;
   const currentPage = kycData?.currentPage || 1;
   const totalPages = kycData?.totalPages || 1;
-  
-  const stats = statsData || {
-    total: 0,
-    pending: 0,
-    verified: 0,
-    rejected: 0,
-    highPriority: 0
-  };
 
   const handleFilterChange = (key: keyof FilterState, value: any) => {
     setFilters(prev => ({
@@ -322,7 +312,7 @@ const KYCPage: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -331,39 +321,6 @@ const KYCPage: React.FC = () => {
             </div>
             <div className="p-3 rounded-lg bg-blue-50">
               <FileText className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending Review</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pending}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-yellow-50">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Verified</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.verified}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-green-50">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">High Priority</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.highPriority}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-red-50">
-              <AlertCircle className="w-6 h-6 text-red-600" />
             </div>
           </div>
         </div>

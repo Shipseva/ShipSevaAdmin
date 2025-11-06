@@ -81,14 +81,16 @@ const AdminSidebar: React.FC = () => {
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-border-default dark:border-gray-700 transition-all duration-300 z-50 ${
+    <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg transition-all duration-300 z-40 ${
       sidebarCollapsed ? 'w-16' : 'w-64'
     }`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         {!sidebarCollapsed && (
           <div className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-primary" />
+            <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
               Admin Panel
             </span>
@@ -96,31 +98,32 @@ const AdminSidebar: React.FC = () => {
         )}
         <button
           onClick={() => dispatch(toggleSidebar())}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-400"
         >
           {sidebarCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-1">
         {menuItems.map((item) => {
           if (!canAccess(item.permission)) return null;
           
           const Icon = item.icon;
+          const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                isActive(item.href)
-                  ? 'bg-primary-lighter text-primary dark:bg-blue-900 dark:text-blue-300'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                active
+                  ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
               {!sidebarCollapsed && (
-                <span className="font-medium">{item.title}</span>
+                <span>{item.title}</span>
               )}
             </Link>
           );
@@ -131,7 +134,7 @@ const AdminSidebar: React.FC = () => {
       {!sidebarCollapsed && admin && (
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-medium">
                 {admin.name.charAt(0).toUpperCase()}
               </span>

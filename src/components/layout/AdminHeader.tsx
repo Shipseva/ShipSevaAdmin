@@ -1,28 +1,64 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
-import { toggleTheme, logout } from '@/store/slices/adminSlice';
+import { logout } from '@/store/slices/adminSlice';
 import { useAdminLogoutMutation } from '@/store/api/authApi';
 import {
   Bell,
   Search,
-  Moon,
-  Sun,
   LogOut,
   User,
   Settings,
+  Users,
+  Package,
+  FileCheck,
 } from 'lucide-react';
 
 const AdminHeader: React.FC = () => {
   const dispatch = useDispatch();
-  const { theme, admin } = useSelector((state: RootState) => state.admin);
-  const [adminLogout] = useAdminLogoutMutation();
+  const pathname = usePathname();
+  const { admin } = useSelector((state: RootState) => state.admin);
+  const [adminLogout, { isLoading: isLoggingOut }] = useAdminLogoutMutation();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  const navigation = [
+    { name: 'User Management', href: '/admin/users', icon: Users },
+    { name: 'Order Management', href: '/admin/orders', icon: Package },
+    { name: 'KYC Management', href: '/admin/kyc', icon: FileCheck },
+  ];
+
+  const isActive = (href: string) => {
+    if (href === '/admin') {
+      return pathname === '/admin';
+    }
+    return pathname.startsWith(href);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen]);
 
   const handleLogout = async () => {
     try {
-      await adminLogout().unwrap();
+      await adminLogout(void 0).unwrap();
       // API call successful, dispatch logout to clear local state
       dispatch(logout());
     } catch (error) {
@@ -33,82 +69,112 @@ const AdminHeader: React.FC = () => {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Search */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+    <header className="sticky top-0 z-50 bg-white shadow-lg border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo and Brand */}
+          <div className="flex items-center">
+            <Link href="/admin" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
+                <Package className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">ShipSeva</span>
+            </Link>
           </div>
-        </div>
 
-        {/* Right side actions */}
-        <div className="flex items-center space-x-4">
-          {/* Theme toggle */}
-          <button
-            onClick={() => dispatch(toggleTheme())}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          >
-            {theme === 'light' ? (
-              <Moon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            ) : (
-              <Sun className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            )}
-          </button>
-
-          {/* Notifications */}
-          <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative">
-            <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              3
-            </span>
-          </button>
-
-          {/* User menu */}
-          <div className="relative group">
-            <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {admin?.name?.charAt(0).toUpperCase()}
-                </span>
+          {/* Search */}
+          <div className="hidden lg:block flex-1 max-w-md mx-8">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
               </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {admin?.name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {admin?.role?.replace('_', ' ')}
-                </p>
-              </div>
+              <input
+                type="text"
+                placeholder="Search..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-2 flex-1 justify-center">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    active
+                      ? 'text-primary bg-primary/10'
+                      : 'text-gray-600 hover:text-primary hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right side actions */}
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <button className="p-2 text-gray-400 hover:text-gray-600 relative rounded-md transition-colors">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
 
-            {/* Dropdown menu */}
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-              <div className="py-1">
-                <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </button>
-                <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </button>
-                <hr className="my-1 border-gray-200 dark:border-gray-700" />
+            {/* Profile Dropdown */}
+            {admin ? (
+              <div className="relative" ref={profileRef}>
                 <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="hidden md:block text-sm font-medium text-gray-700">
+                    {admin.name}
+                  </span>
                 </button>
+
+                {/* Profile Dropdown Menu */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <p className="text-sm font-medium text-gray-900">{admin.name}</p>
+                      <p className="text-sm text-gray-500">{admin.email || admin.role?.replace('_', ' ')}</p>
+                    </div>
+                    <Link
+                      href="/admin/settings"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {isLoggingOut ? 'Signing out...' : 'Sign out'}
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <Link
+                href="/admin/login"
+                className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </div>

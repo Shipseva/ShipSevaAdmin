@@ -7,7 +7,6 @@ import {
   useBanUserMutation,
   useUnbanUserMutation,
   useUpdateUserMutation,
-  useGetUserStatsQuery
 } from '@/store/api/userApi';
 import {
   Users,
@@ -101,7 +100,6 @@ const UsersPage: React.FC = () => {
     refetch 
   } = useGetAllUsersQuery(getFilteredParams());
 
-  const { data: statsData } = useGetUserStatsQuery();
   const [deleteUser] = useDeleteUserMutation();
   const [banUser] = useBanUserMutation();
   const [unbanUser] = useUnbanUserMutation();
@@ -111,14 +109,6 @@ const UsersPage: React.FC = () => {
   const totalRecords = usersData?.totalRecords || 0;
   const currentPage = usersData?.currentPage || 1;
   const totalPages = usersData?.totalPages || 1;
-  
-  const stats = statsData || {
-    total: 0,
-    verified: 0,
-    pending: 0,
-    rejected: 0,
-    emailVerified: 0
-  };
 
   const handleFilterChange = (key: keyof FilterState, value: any) => {
     setFilters(prev => ({
@@ -282,39 +272,6 @@ const UsersPage: React.FC = () => {
             </div>
             <div className="p-3 rounded-lg bg-blue-50">
               <Users className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Verified Users</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.verified || 0}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-green-50">
-              <UserCheck className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending Verification</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pending || 0}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-yellow-50">
-              <Ban className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Rejected Users</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.rejected || 0}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-red-50">
-              <Ban className="w-6 h-6 text-red-600" />
             </div>
           </div>
         </div>
