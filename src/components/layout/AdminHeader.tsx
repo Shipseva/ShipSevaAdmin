@@ -16,6 +16,7 @@ import {
   Users,
   Package,
   FileCheck,
+  LayoutDashboard,
 } from 'lucide-react';
 
 const AdminHeader: React.FC = () => {
@@ -27,6 +28,7 @@ const AdminHeader: React.FC = () => {
   const profileRef = useRef<HTMLDivElement>(null);
 
   const navigation = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'User Management', href: '/admin/users', icon: Users },
     { name: 'Order Management', href: '/admin/orders', icon: Package },
     { name: 'KYC Management', href: '/admin/kyc', icon: FileCheck },
