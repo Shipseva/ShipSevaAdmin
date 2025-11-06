@@ -56,10 +56,9 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
 
     const handleImageClick = () => {
       if (fileKey) {
-        const s3Key = extractS3Key(fileKey);
-        console.log('Original URL:', fileKey);
-        console.log('Extracted S3 Key:', s3Key);
-        setSelectedImageKey(s3Key);
+
+
+        setSelectedImageKey(fileKey);
         setShowImageModal(true);
       }
     };
