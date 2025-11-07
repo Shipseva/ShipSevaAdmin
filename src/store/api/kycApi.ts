@@ -82,32 +82,6 @@ export const kycApi = createApi({
       invalidatesTags: ['KYC'],
     }),
     
-    // Approve KYC application
-    approveKyc: builder.mutation<{ success: boolean; message: string }, {
-      id: string;
-      reason?: string;
-    }>({
-      query: ({ id, reason }) => ({
-        url: `/${id}/approve`,
-        method: 'POST',
-        body: { reason },
-      }),
-      invalidatesTags: ['KYC'],
-    }),
-    
-    // Reject KYC application
-    rejectKyc: builder.mutation<{ success: boolean; message: string }, {
-      id: string;
-      reason?: string;
-    }>({
-      query: ({ id, reason }) => ({
-        url: `/${id}/reject`,
-        method: 'POST',
-        body: { reason },
-      }),
-      invalidatesTags: ['KYC'],
-    }),
-    
     // Update KYC application status (generic)
     updateKYCStatus: builder.mutation<{ success: boolean; message: string }, {
       id: string;
@@ -195,8 +169,6 @@ export const {
   useGetKYCApplicationQuery,
   useGetKycByIdQuery,
   useDeleteKycMutation,
-  useApproveKycMutation,
-  useRejectKycMutation,
   useUpdateKYCStatusMutation,
   useUpdateKycMutation,
   useUpdateDocumentStatusMutation,

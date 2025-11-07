@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   useGetAllKycQuery,
   useDeleteKycMutation,
-  useApproveKycMutation,
-  useRejectKycMutation,
+  useUpdateKycMutation,
   useUpdateDocumentStatusMutation,
 } from '@/store/api/kycApi';
 import {
@@ -125,8 +124,7 @@ const KYCPage: React.FC = () => {
   } = useGetAllKycQuery(getFilteredParams());
 
   const [deleteKyc] = useDeleteKycMutation();
-  const [approveKyc] = useApproveKycMutation();
-  const [rejectKyc] = useRejectKycMutation();
+  const [updateKyc] = useUpdateKycMutation();
   const [updateDocumentStatus] = useUpdateDocumentStatusMutation();
 
   const kycApplications = kycData?.data || [];
@@ -161,9 +159,19 @@ const KYCPage: React.FC = () => {
     }
   };
 
-  const handleApproveKyc = async (kycId: string) => {
+  const handleApproveKyc = async (kycId: string, businessType: 'individual' | 'agency' = 'individual') => {
+    if (!kycId) {
+      console.error('KYC ID is undefined');
+      return;
+    }
     try {
-      await approveKyc(kycId).unwrap();
+      await updateKyc({ 
+        id: kycId, 
+        updates: {
+          status: 'verified',
+          businessType
+        }
+      }).unwrap();
       refetch();
     } catch (error) {
       console.error('Failed to approve KYC:', error);
@@ -172,7 +180,12 @@ const KYCPage: React.FC = () => {
 
   const handleRejectKyc = async (kycId: string, reason?: string) => {
     try {
-      await rejectKyc({ id: kycId, reason }).unwrap();
+      await updateKyc({ 
+        id: kycId, 
+        updates: {
+          status: 'rejected'
+        }
+      }).unwrap();
       refetch();
     } catch (error) {
       console.error('Failed to reject KYC:', error);
@@ -199,12 +212,24 @@ const KYCPage: React.FC = () => {
 
     try {
       for (const kycId of selectedApplications) {
+        const application = kycApplications.find(app => app.id === kycId);
         switch (action) {
           case 'approve':
-            await approveKyc(kycId).unwrap();
+            await updateKyc({ 
+              id: kycId, 
+              updates: {
+                status: 'verified',
+                businessType: application?.businessType || 'individual'
+              }
+            }).unwrap();
             break;
           case 'reject':
-            await rejectKyc({ id: kycId }).unwrap();
+            await updateKyc({ 
+              id: kycId, 
+              updates: {
+                status: 'rejected'
+              }
+            }).unwrap();
             break;
           case 'delete':
             await deleteKyc(kycId).unwrap();
@@ -639,7 +664,7 @@ const KYCPage: React.FC = () => {
                           {application.status === 'pending' ? (
                             <>
                               <button 
-                                onClick={() => handleApproveKyc(application.id)}
+                                onClick={() => handleApproveKyc(application.id, application.businessType)}
                                 className="text-gray-400 hover:text-success transition-colors"
                                 title="Approve KYC"
                               >
