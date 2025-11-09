@@ -98,13 +98,28 @@ const KYCDetailModal: React.FC<KYCDetailModalProps> = ({ kycId, isOpen, onClose 
     if (!kycId) return;
 
     try {
-      await updateKyc({
-        id: kycId,
-        updates: {
-          status: formData.status as 'pending' | 'verified' | 'rejected',
-          businessType: formData.businessType as 'individual' | 'agency'
-        }
-      }).unwrap();
+      const statusChanged = formData.status && formData.status !== kyc?.status;
+      const businessTypeChanged = formData.businessType && formData.businessType !== kyc?.businessType;
+      
+      // If status is being updated, only send status (per requirement)
+      if (statusChanged) {
+        await updateKyc({
+          id: kycId,
+          updates: {
+            status: formData.status as 'pending' | 'verified' | 'rejected'
+          }
+        }).unwrap();
+      } 
+      // If only businessType is being updated (and status is not), send businessType
+      else if (businessTypeChanged) {
+        await updateKyc({
+          id: kycId,
+          updates: {
+            businessType: formData.businessType as 'individual' | 'agency'
+          }
+        }).unwrap();
+      }
+      
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to update KYC:', error);

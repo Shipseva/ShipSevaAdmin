@@ -159,7 +159,7 @@ const KYCPage: React.FC = () => {
     }
   };
 
-  const handleApproveKyc = async (kycId: string, businessType: 'individual' | 'agency' = 'individual') => {
+  const handleApproveKyc = async (kycId: string) => {
     if (!kycId) {
       console.error('KYC ID is undefined');
       return;
@@ -168,8 +168,7 @@ const KYCPage: React.FC = () => {
       await updateKyc({ 
         id: kycId, 
         updates: {
-          status: 'verified',
-          businessType
+          status: 'verified'
         }
       }).unwrap();
       refetch();
@@ -218,8 +217,7 @@ const KYCPage: React.FC = () => {
             await updateKyc({ 
               id: kycId, 
               updates: {
-                status: 'verified',
-                businessType: application?.businessType || 'individual'
+                status: 'verified'
               }
             }).unwrap();
             break;
@@ -664,7 +662,7 @@ const KYCPage: React.FC = () => {
                           {application.status === 'pending' ? (
                             <>
                               <button 
-                                onClick={() => handleApproveKyc(application.id, application.businessType)}
+                                onClick={() => handleApproveKyc(application.id)}
                                 className="text-gray-400 hover:text-success transition-colors"
                                 title="Approve KYC"
                               >
